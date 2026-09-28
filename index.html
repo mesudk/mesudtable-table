@@ -1,10 +1,13 @@
 <!DOCTYPE html>
 <html lang="am">
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Grade 12 Automatic Timetable</title>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
 
 <style>
 
@@ -14,48 +17,76 @@
 
 body{
     margin:0;
-    font-family:Arial, "Noto Sans Ethiopic", sans-serif;
-    background:#eef2f7;
-    color:#172033;
+    padding:20px;
+    font-family:Arial,"Noto Sans Ethiopic",sans-serif;
+    background:#f3f4f6;
+    color:#111827;
+}
+
+.container{
+    max-width:1400px;
+    margin:auto;
 }
 
 header{
-    background:#0f172a;
+    background:linear-gradient(135deg,#2563eb,#1e40af);
     color:white;
-    text-align:center;
     padding:25px;
+    border-radius:15px;
+    margin-bottom:20px;
+    text-align:center;
 }
 
 header h1{
     margin:0 0 8px;
 }
 
-.container{
-    max-width:1500px;
-    margin:auto;
-    padding:20px;
+header p{
+    margin:0;
 }
 
 .card{
     background:white;
-    margin-bottom:20px;
     padding:20px;
-    border-radius:12px;
-    box-shadow:0 3px 15px rgba(0,0,0,.08);
+    border-radius:14px;
+    margin-bottom:20px;
+    box-shadow:0 3px 12px rgba(0,0,0,.08);
 }
 
-h2{
-    color:#0f172a;
+.card h2{
     margin-top:0;
 }
 
-button{
-    border:0;
-    border-radius:7px;
-    padding:11px 18px;
-    margin:5px;
-    cursor:pointer;
+.settings,
+.form-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+}
+
+label{
+    display:block;
     font-weight:bold;
+    margin-bottom:6px;
+}
+
+input,
+select{
+    width:100%;
+    padding:11px;
+    border:1px solid #d1d5db;
+    border-radius:8px;
+    font-size:15px;
+}
+
+button{
+    border:none;
+    padding:11px 16px;
+    border-radius:8px;
+    cursor:pointer;
+    font-size:15px;
+    font-weight:bold;
+    margin:5px;
 }
 
 .btn-primary{
@@ -68,1422 +99,2909 @@ button{
     color:white;
 }
 
+.btn-warning{
+    background:#d97706;
+    color:white;
+}
+
 .btn-danger{
     background:#dc2626;
     color:white;
 }
 
-.btn-dark{
-    background:#111827;
+.btn-secondary{
+    background:#6b7280;
     color:white;
 }
 
-.btn-warning{
-    background:#f59e0b;
-    color:white;
+button:hover{
+    opacity:.88;
 }
 
-/* EDIT BUTTONS */
-
-.edit-btn{
-    background:#f59e0b;
-    color:white;
+.actions{
+    display:flex;
+    flex-wrap:wrap;
+    gap:5px;
+    margin-top:15px;
 }
 
-.save-btn{
-    background:#16a34a;
-    color:white;
-}
-
-.cancel-btn{
-    background:#64748b;
-    color:white;
-}
-
-.edit-input{
-    width:100%;
-    padding:8px;
-    border:1px solid #94a3b8;
-    border-radius:6px;
-    font-size:14px;
-}
-
-.form-grid{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:12px;
-}
-
-label{
+.message{
+    padding:15px;
+    border-radius:10px;
+    margin-bottom:20px;
+    display:none;
     font-weight:bold;
+}
+
+.message.success{
     display:block;
-    margin-bottom:5px;
+    background:#dcfce7;
+    color:#166534;
 }
 
-input,select{
-    width:100%;
-    padding:10px;
-    border:1px solid #cbd5e1;
-    border-radius:7px;
-    font-size:15px;
+.message.error{
+    display:block;
+    background:#fee2e2;
+    color:#991b1b;
 }
 
-table{
+.message.info{
+    display:block;
+    background:#dbeafe;
+    color:#1e40af;
+}
+
+.assignment-table,
+.code-table{
     width:100%;
     border-collapse:collapse;
     margin-top:15px;
 }
 
-th,td{
-    border:1px solid #cbd5e1;
-    padding:9px;
+.assignment-table th,
+.assignment-table td,
+.code-table th,
+.code-table td{
+    border:1px solid #d1d5db;
+    padding:10px;
     text-align:center;
 }
 
-th{
-    background:#0f172a;
-    color:white;
+.assignment-table th,
+.code-table th{
+    background:#eff6ff;
 }
 
-td{
-    min-width:125px;
-    height:75px;
-    background:#f8fafc;
-}
-
-.subject{
-    font-size:16px;
+.code{
     font-weight:bold;
     color:#1d4ed8;
 }
 
-.teacher{
-    font-size:12px;
-    color:#475569;
-    margin-top:5px;
+.timetable-wrapper{
+    overflow-x:auto;
 }
 
-.period{
+.timetable{
+    width:100%;
+    min-width:900px;
+    border-collapse:collapse;
+    margin-bottom:20px;
+}
+
+.timetable th,
+.timetable td{
+    border:1px solid #9ca3af;
+    padding:6px;
+    text-align:center;
+    vertical-align:middle;
+}
+
+.timetable th{
+    background:#1d4ed8;
+    color:white;
+}
+
+.period-cell{
+    background:#f3f4f6;
     font-weight:bold;
-    background:#e2e8f0;
-    color:#111827;
+    min-width:65px;
 }
 
-.message{
-    display:none;
-    padding:15px;
-    border-radius:8px;
-    margin-top:15px;
+.lesson{
+    background:#eff6ff;
+    border-radius:5px;
+    padding:4px;
+    min-height:45px;
+}
+
+.subject{
     font-weight:bold;
-}
-
-.success{
-    background:#dcfce7;
-    color:#166534;
-}
-
-.error{
-    background:#fee2e2;
-    color:#991b1b;
-}
-
-.info{
-    background:#dbeafe;
-    color:#1e40af;
-}
-
-.assignment-table td{
-    height:auto;
-}
-
-.free{
-    color:#94a3b8;
+    color:#1d4ed8;
     font-size:13px;
 }
 
-.summary{
-    background:#f8fafc;
-    padding:15px;
-    border-radius:8px;
-    margin-bottom:15px;
+.teacher{
+    margin-top:2px;
+    font-size:10px;
+    color:#374151;
 }
 
-@media(max-width:800px){
+.teacher-code{
+    font-weight:bold;
+    color:#111827;
+}
 
-    .container{
-        padding:8px;
+.free{
+    color:#9ca3af;
+    font-style:italic;
+    font-size:11px;
+}
+
+.loading{
+    text-align:center;
+    padding:30px;
+    font-weight:bold;
+    color:#2563eb;
+}
+
+@media(max-width:700px){
+
+    body{
+        padding:10px;
     }
 
-    table{
-        font-size:11px;
-    }
-
-    th,td{
-        padding:5px;
-        min-width:90px;
-    }
-
-    .subject{
-        font-size:12px;
-    }
-
-    .teacher{
-        font-size:10px;
+    .card{
+        padding:12px;
     }
 
     button{
-        padding:8px 10px;
-        font-size:12px;
+        width:100%;
+        margin:4px 0;
     }
+
 }
 
 @media print{
 
-    header{
-        background:white;
-        color:black;
+    @page{
+        size:A4 portrait;
+        margin:8mm 8mm 7mm 8mm;
     }
 
-    .no-print{
+    html,
+    body{
+
+        width:100% !important;
+        height:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        background:white !important;
+        overflow:hidden !important;
+    }
+
+    .no-print,
+    header{
         display:none !important;
     }
 
-    .card{
-        box-shadow:none;
+    #resultCard{
+
+        display:block !important;
+        width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        border:none !important;
+        box-shadow:none !important;
+        background:white !important;
     }
 
-    table{
-        page-break-inside:avoid;
+    #result{
+
+        width:100% !important;
+        margin:0 !important;
+        padding:0 !important;
     }
+
+    .print-one-page{
+
+        width:100% !important;
+        height:auto !important;
+        max-height:100% !important;
+        margin:0 !important;
+        padding:0 !important;
+        overflow:hidden !important;
+
+        page-break-before:avoid !important;
+        page-break-after:avoid !important;
+        page-break-inside:avoid !important;
+
+        break-before:avoid !important;
+        break-after:avoid !important;
+        break-inside:avoid !important;
+    }
+
+    .pdf-header{
+
+        display:flex !important;
+        justify-content:space-between !important;
+        align-items:flex-start !important;
+        width:100% !important;
+        margin:0 0 8px 0 !important;
+        padding:0 !important;
+    }
+
+    .pdf-new{
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:18px !important;
+        font-weight:bold !important;
+        font-style:italic !important;
+        text-decoration:underline !important;
+        line-height:20px !important;
+    }
+
+    .pdf-date{
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:10px !important;
+        font-weight:bold !important;
+        line-height:14px !important;
+    }
+
+    .pdf-title{
+
+        display:block !important;
+        text-align:center !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:14px !important;
+        font-weight:bold !important;
+        line-height:18px !important;
+
+        margin:0 0 7px 0 !important;
+        padding:0 !important;
+    }
+
+    .pdf-subtitle{
+        display:none !important;
+    }
+
+    .timetable-wrapper{
+
+        width:100% !important;
+        overflow:visible !important;
+        margin:0 !important;
+        padding:0 !important;
+    }
+
+    .timetable{
+
+        width:100% !important;
+        min-width:0 !important;
+        max-width:100% !important;
+
+        table-layout:fixed !important;
+        border-collapse:collapse !important;
+        border-spacing:0 !important;
+
+        margin:0 auto !important;
+        padding:0 !important;
+
+        page-break-inside:avoid !important;
+        break-inside:avoid !important;
+    }
+
+    .timetable col.day-column{
+        width:8% !important;
+    }
+
+    .timetable col.period-column{
+        width:11% !important;
+    }
+
+    .timetable col.class-column{
+        width:20.25% !important;
+    }
+
+    .timetable thead tr:first-child{
+        height:18px !important;
+    }
+
+    .timetable thead tr:nth-child(2){
+        height:17px !important;
+    }
+
+    .timetable thead th{
+
+        height:18px !important;
+        min-height:18px !important;
+        max-height:18px !important;
+
+        padding:1px !important;
+
+        border:0.6px solid #555 !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:8px !important;
+        line-height:9px !important;
+        font-weight:bold !important;
+
+        background:white !important;
+        color:#111 !important;
+
+        vertical-align:middle !important;
+        overflow:hidden !important;
+    }
+
+    .timetable thead tr:nth-child(2) th{
+
+        height:17px !important;
+        min-height:17px !important;
+        max-height:17px !important;
+
+        font-size:7px !important;
+        line-height:8px !important;
+    }
+
+    .timetable tbody tr{
+
+        height:16px !important;
+        min-height:16px !important;
+        max-height:16px !important;
+    }
+
+    .timetable tbody td{
+
+        height:16px !important;
+        min-height:16px !important;
+        max-height:16px !important;
+
+        padding:0 !important;
+        margin:0 !important;
+
+        border:0.6px solid #555 !important;
+
+        text-align:center !important;
+        vertical-align:middle !important;
+
+        line-height:1 !important;
+        overflow:hidden !important;
+    }
+
+    .day-cell{
+
+        width:8% !important;
+        min-width:8% !important;
+        max-width:8% !important;
+
+        padding:0 !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:8px !important;
+        font-weight:bold !important;
+        line-height:1 !important;
+
+        writing-mode:vertical-rl !important;
+        transform:rotate(180deg) !important;
+
+        white-space:nowrap !important;
+        overflow:hidden !important;
+    }
+
+    .period-cell{
+
+        width:11% !important;
+        min-width:11% !important;
+        max-width:11% !important;
+
+        padding:0 2px !important;
+
+        background:white !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:7px !important;
+        font-weight:bold !important;
+        line-height:1 !important;
+
+        white-space:nowrap !important;
+        overflow:hidden !important;
+    }
+
+    .lesson{
+
+        display:block !important;
+
+        width:100% !important;
+        height:15px !important;
+        min-height:15px !important;
+        max-height:15px !important;
+
+        padding:0 !important;
+        margin:0 !important;
+
+        border-radius:0 !important;
+        background:white !important;
+
+        overflow:hidden !important;
+    }
+
+    .subject{
+
+        display:block !important;
+
+        width:100% !important;
+        height:8px !important;
+        max-height:8px !important;
+
+        margin:0 !important;
+        padding:0 !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:7px !important;
+        font-weight:bold !important;
+        color:#111 !important;
+        line-height:8px !important;
+
+        white-space:nowrap !important;
+        overflow:hidden !important;
+        text-overflow:clip !important;
+    }
+
+    .teacher{
+
+        display:block !important;
+
+        width:100% !important;
+        height:6px !important;
+        max-height:6px !important;
+
+        margin:0 !important;
+        padding:0 !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:5px !important;
+        color:#111 !important;
+        line-height:6px !important;
+
+        white-space:nowrap !important;
+        overflow:hidden !important;
+    }
+
+    .teacher-code{
+
+        font-size:5px !important;
+        font-weight:bold !important;
+        color:#111 !important;
+    }
+
+    .free{
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:5px !important;
+        color:#777 !important;
+        line-height:16px !important;
+    }
+
+    table,
+    tr,
+    td,
+    th{
+
+        page-break-inside:avoid !important;
+        break-inside:avoid !important;
+    }
+
+    .pdf-footer{
+
+        display:block !important;
+        text-align:center !important;
+
+        font-family:
+            Georgia,
+            "Times New Roman",
+            serif !important;
+
+        font-size:7px !important;
+
+        margin-top:7px !important;
+        line-height:9px !important;
+    }
+
+}
+
+.pdf-header,
+.pdf-title,
+.pdf-footer,
+.pdf-subtitle{
+    display:none;
 }
 
 </style>
-</head>
 
+</head>
 
 <body>
 
-<header>
-
-<h1>📚 Grade 12 Automatic Timetable Generator</h1>
-
-<p>
-Automatic Conflict-Free School Timetable System
-</p>
-
-</header>
-
-
 <div class="container">
 
+<header class="no-print">
 
-<!-- SETTINGS -->
+    <h1>
+        📚 Grade 12 Automatic Timetable
+    </h1>
+
+    <p>
+        prepared by Mesud
+    </p>        
+</header>
+
+<div
+    id="message"
+    class="message no-print">
+</div>
 
 <div class="card no-print">
 
-<h2>⚙️ የትምህርት ቤት ቅንብር</h2>
+    <h2>
+        ⚙️ Timetable Settings
+    </h2>
 
-<div class="form-grid">
+    <div class="settings">
 
-<div>
+        <div>
 
-<label>Classes / Sections</label>
+            <label>
+                Classes
+            </label>
 
-<input
-id="classNames"
-value="12A,12B,12C,12D"
->
+            <input
+                id="classNames"
+                value="12A,12B,12C,12D"
+            >
+
+        </div>
+
+        <div>
+
+            <label>
+                Days
+            </label>
+
+            <input
+                id="daysCount"
+                type="number"
+                value="5"
+                min="5"
+                max="5"
+            >
+
+        </div>
+
+        <div>
+
+            <label>
+                Periods per Day
+            </label>
+
+            <input
+                id="periodCount"
+                type="number"
+                value="5"
+                min="5"
+                max="5"
+            >
+
+        </div>
+
+    </div>
 
 </div>
 
+<!-- TEACHER CODES -->
 
-<div>
+<div class="card no-print">
 
-<label>የቀን ብዛት</label>
+    <h2>
+        👨‍🏫 Teacher Codes
+    </h2>
 
-<input
-type="number"
-id="daysCount"
-value="5"
-min="1"
-max="6"
->
+    <div style="overflow-x:auto;">
+
+        <table class="code-table">
+
+            <thead>
+
+                <tr>
+
+                    <th>No</th>
+
+                    <th>Teacher Name</th>
+
+                    <th>Code</th>
+
+                    <th>Action</th>
+
+                </tr>
+
+            </thead>
+
+            <tbody id="teacherCodeBody">
+            </tbody>
+
+        </table>
+
+    </div>
+
+    <div class="actions">
+
+        <button
+            type="button"
+            class="btn-warning"
+            onclick="printTeacherCodes()"
+        >
+            🖨️ Print Teacher Codes
+        </button>
+
+    </div>
 
 </div>
 
+<!-- ADD / EDIT SUBJECT -->
 
-<div>
+<div class="card no-print">
 
-<label>በቀን ክፍለ-ጊዜ</label>
+    <h2>
+        ➕ Add / Edit Subject
+    </h2>
 
-<input
-type="number"
-id="periodCount"
-value="6"
-min="1"
-max="10"
->
+    <div class="form-grid">
+
+        <div>
+
+            <label>Subject</label>
+
+            <input
+                id="subject"
+                placeholder="Example: Mathematics"
+            >
+
+        </div>
+
+        <div>
+
+            <label>Teacher</label>
+
+            <input
+                id="teacher"
+                placeholder="Teacher name"
+            >
+
+        </div>
+
+        <div>
+
+            <label>Class</label>
+
+            <select id="classSelect">
+            </select>
+
+        </div>
+
+        <div>
+
+            <label>Periods / Week</label>
+
+            <input
+                id="periods"
+                type="number"
+                min="1"
+                max="5"
+                value="3"
+            >
+
+        </div>
+
+    </div>
+
+    <div class="actions">
+
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="saveAssignment()"
+            id="saveBtn"
+        >
+            ➕ Add Subject
+        </button>
+
+        <button
+            type="button"
+            class="btn-secondary"
+            onclick="resetForm()"
+        >
+            ↩️ Reset
+        </button>
+
+    </div>
 
 </div>
-
-</div>
-
-</div>
-
-
 
 <!-- ASSIGNMENTS -->
 
 <div class="card no-print">
 
-<h2>📖 Subjects & Teachers</h2>
+    <h2>
+        📋 Subject Assignments
+    </h2>
 
-<div class="summary">
+    <div style="overflow-x:auto;">
 
-የምትፈልገውን Subject፣ Teacher፣ Class / Section እና
-በሳምንት የሚፈለገውን Period ብዛት አስገባ።
+        <table class="assignment-table">
 
-</div>
+            <thead>
 
+                <tr>
 
-<div class="form-grid">
+                    <th>No</th>
+                    <th>Subject</th>
+                    <th>Teacher</th>
+                    <th>Class</th>
+                    <th>Periods</th>
+                    <th>Action</th>
 
+                </tr>
 
-<div>
+            </thead>
 
-<label>Subject</label>
+            <tbody id="assignmentBody">
+            </tbody>
 
-<input
-id="subject"
-placeholder="Mathematics"
->
+        </table>
 
-</div>
+    </div>
 
+    <div class="actions">
 
-<div>
+        <button
+            type="button"
+            class="btn-success"
+            onclick="loadDefaultData()"
+        >
+            📚 Load Default Grade 12 Data
+        </button>
 
-<label>Teacher</label>
+        <button
+            type="button"
+            class="btn-danger"
+            onclick="clearAssignments()"
+        >
+            🗑️ Clear All
+        </button>
 
-<input
-id="teacher"
-placeholder="Mohammed"
->
-
-</div>
-
-
-<div>
-
-<label>Class / Section</label>
-
-<select id="classSelect">
-</select>
-
-</div>
-
-
-<div>
-
-<label>Periods / Week</label>
-
-<input
-type="number"
-id="periods"
-value="4"
-min="1"
-max="30"
->
+    </div>
 
 </div>
-
-
-</div>
-
-
-<button
-class="btn-success"
-onclick="addAssignment()"
->
-➕ Add Assignment
-</button>
-
-
-<button
-class="btn-dark"
-onclick="loadDefaultData()"
->
-🔄 Load Your Data
-</button>
-
-
-<div id="assignmentList"></div>
-
-</div>
-
-
 
 <!-- GENERATE -->
 
 <div class="card no-print">
 
-<h2>🚀 Generate Timetable</h2>
+    <h2>
+        🚀 Generate
+    </h2>
 
-<p>
+    <div class="actions">
 
-ሲስተሙ የሚከተሉትን ያረጋግጣል፦
+        <button
+            type="button"
+            class="btn-primary"
+            onclick="generateTimetable()"
+        >
+            ⚡ Generate Timetable
+        </button>
 
-</p>
+        <button
+            type="button"
+            class="btn-success"
+            onclick="exportExcel()"
+        >
+            📊 Export Excel
+        </button>
 
-<ul>
+        <button
+            type="button"
+            class="btn-warning"
+            onclick="exportPDF()"
+        >
+            📄 Export PDF
+        </button>
 
-<li>✅ አንድ Class በአንድ Period ላይ አንድ Subject ብቻ</li>
-
-<li>✅ አንድ Teacher በአንድ Period ላይ አንድ Class ብቻ</li>
-
-<li>✅ የSubject ሳምንታዊ Period ብዛት ይሟላል</li>
-
-<li>✅ ተመሳሳይ Subject በአንድ ቀን በተደጋጋሚ እንዳይመደብ ይሞክራል</li>
-
-<li>✅ Teacher conflict አይፈጠርም</li>
-
-<li>✅ Class conflict አይፈጠርም</li>
-
-</ul>
-
-
-<button
-class="btn-primary"
-onclick="generateTimetable()"
->
-🚀 GENERATE TIMETABLE
-</button>
-
-
-<button
-class="btn-dark"
-onclick="window.print()"
->
-🖨️ PRINT
-</button>
-
-
-<button
-class="btn-danger"
-onclick="clearAssignments()"
->
-🗑️ Clear
-</button>
-
-
-<div id="message" class="message"></div>
+    </div>
 
 </div>
-
-
 
 <!-- RESULT -->
 
-<div class="card">
+<div
+    class="card"
+    id="resultCard"
+>
 
-<h2>📅 Generated Timetable</h2>
+    <div id="result">
 
-<div id="result">
+        <div class="loading">
 
-<p>
-Timetable not generated yet.
-</p>
+            Generate Timetable ን ለመጀመር
+            "Generate Timetable" ይጫኑ።
+
+        </div>
+
+    </div>
 
 </div>
 
 </div>
-
-
-</div>
-
 
 <script>
 
+/* =========================================================
+   VARIABLES
+   ========================================================= */
 
-// =====================================================
-// GLOBAL DATA
-// =====================================================
+let classes=[
+    "12A",
+    "12B",
+    "12C",
+    "12D"
+];
 
-let assignments = [];
-
-let timetable = {};
-
-let classes = [];
-
-let days = [
+let days=[
     "ሰኞ",
     "ማክሰኞ",
     "ረቡዕ",
     "ሐሙስ",
-    "ዓርብ",
-    "ቅዳሜ"
+    "ዓርብ"
 ];
 
+let assignments=[];
+
+let timetable=null;
+
+let editingIndex=-1;
 
 
-// =====================================================
-// INITIALIZE
-// =====================================================
+/* =========================================================
+   TEACHER CODES
+   ========================================================= */
+
+const teacherCodes={
+
+    "Mohammed Frew":"Maths1",
+    "Salim":"Eco1",
+    "Mohammed Seid":"Maths2",
+    "Tekle":"En1",
+    "Mohammed Yesuf":"En2",
+    "Tirunesh":"Am1",
+    "Seid Yesuf":"It1",
+    "Alemesged":"Phy1",
+    "Chane":"Che1",
+    "Ahmed":"Bio1",
+    "Yimam":"AG1",
+    "Alemu":"Geo1",
+    "Abubeker":"His1"
+
+};
+
+
+/* =========================================================
+   GET TEACHER CODE
+   ========================================================= */
+
+function getTeacherCode(teacher){
+
+    const name =
+        String(teacher).trim();
+
+    if(
+        teacherCodes[name]
+    ){
+
+        return teacherCodes[name];
+
+    }
+
+    let number=1;
+
+    let code="T1";
+
+    while(
+        Object.values(
+            teacherCodes
+        ).includes(code)
+    ){
+
+        number++;
+
+        code="T"+number;
+
+    }
+
+    teacherCodes[name]=code;
+
+    renderTeacherCodes();
+
+    return code;
+}
+
+
+/* =========================================================
+   RENDER TEACHER CODES
+   ========================================================= */
+
+function renderTeacherCodes(){
+
+    const body =
+        document.getElementById(
+            "teacherCodeBody"
+        );
+
+    if(!body){
+        return;
+    }
+
+    body.innerHTML="";
+
+    Object.entries(
+        teacherCodes
+    ).forEach(
+        ([name,code],index)=>{
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            const noTd =
+                document.createElement(
+                    "td"
+                );
+
+            noTd.textContent =
+                index+1;
+
+            const nameTd =
+                document.createElement(
+                    "td"
+                );
+
+            nameTd.textContent =
+                name;
+
+            const codeTd =
+                document.createElement(
+                    "td"
+                );
+
+            codeTd.className="code";
+
+            codeTd.textContent =
+                code;
+
+            const actionTd =
+                document.createElement(
+                    "td"
+                );
+
+            const editBtn =
+                document.createElement(
+                    "button"
+                );
+
+            editBtn.type="button";
+
+            editBtn.className=
+                "btn-primary";
+
+            editBtn.textContent=
+                "✏️ Edit";
+
+            editBtn.onclick=()=>{
+                editTeacherCode(index);
+            };
+
+            actionTd.appendChild(
+                editBtn
+            );
+
+            tr.appendChild(noTd);
+            tr.appendChild(nameTd);
+            tr.appendChild(codeTd);
+            tr.appendChild(actionTd);
+
+            body.appendChild(tr);
+
+        }
+    );
+}
+
+
+/* =========================================================
+   EDIT TEACHER NAME + CODE
+   ========================================================= */
+
+function editTeacherCode(index){
+
+    const entries =
+        Object.entries(
+            teacherCodes
+        );
+
+    if(
+        index<0 ||
+        index>=entries.length
+    ){
+
+        return;
+
+    }
+
+    const oldName =
+        entries[index][0];
+
+    const oldCode =
+        entries[index][1];
+
+
+    /* ============================
+       EDIT NAME
+       ============================ */
+
+    const newNameInput =
+        prompt(
+            "Teacher Name ያስተካክሉ:",
+            oldName
+        );
+
+    if(
+        newNameInput===null
+    ){
+
+        return;
+
+    }
+
+    const newName =
+        newNameInput.trim();
+
+    if(!newName){
+
+        alert(
+            "Teacher Name ባዶ መሆን አይችልም።"
+        );
+
+        return;
+
+    }
+
+
+    /* ============================
+       EDIT CODE
+       ============================ */
+
+    const newCodeInput =
+        prompt(
+            "Teacher Code ያስተካክሉ:",
+            oldCode
+        );
+
+    if(
+        newCodeInput===null
+    ){
+
+        return;
+
+    }
+
+    const newCode =
+        newCodeInput.trim();
+
+    if(!newCode){
+
+        alert(
+            "Teacher Code ባዶ መሆን አይችልም።"
+        );
+
+        return;
+
+    }
+
+
+    /* ============================
+       DUPLICATE NAME CHECK
+       ============================ */
+
+    if(
+        newName!==oldName &&
+        Object.prototype.hasOwnProperty.call(
+            teacherCodes,
+            newName
+        )
+    ){
+
+        alert(
+            "ይህ Teacher Name ቀድሞ አለ።"
+        );
+
+        return;
+
+    }
+
+
+    /* ============================
+       DUPLICATE CODE CHECK
+       ============================ */
+
+    const duplicateCode =
+        Object.entries(
+            teacherCodes
+        ).some(
+            ([name,code])=>
+                name!==oldName &&
+                code===newCode
+        );
+
+    if(duplicateCode){
+
+        alert(
+            "ይህ Teacher Code ቀድሞ አለ።"
+        );
+
+        return;
+
+    }
+
+
+    /* =================================================
+       MOST IMPORTANT PART
+       OLD NAME → NEW NAME
+       ALL ASSIGNMENTS
+       ================================================= */
+
+    assignments.forEach(
+        assignment=>{
+
+            if(
+                assignment.teacher===
+                oldName
+            ){
+
+                assignment.teacher=
+                    newName;
+
+            }
+
+        }
+    );
+
+
+    /* =================================================
+       UPDATE TEACHER CODES
+       KEEP SAME TABLE POSITION
+       ================================================= */
+
+    const updatedCodes={};
+
+    Object.entries(
+        teacherCodes
+    ).forEach(
+        ([name,code])=>{
+
+            if(
+                name===oldName
+            ){
+
+                updatedCodes[
+                    newName
+                ]=newCode;
+
+            }
+            else{
+
+                updatedCodes[
+                    name
+                ]=code;
+
+            }
+
+        }
+    );
+
+
+    Object.keys(
+        teacherCodes
+    ).forEach(
+        key=>{
+
+            delete teacherCodes[key];
+
+        }
+    );
+
+
+    Object.assign(
+        teacherCodes,
+        updatedCodes
+    );
+
+
+    /* =================================================
+       UPDATE EXISTING TIMETABLE
+       ================================================= */
+
+    if(timetable){
+
+        Object.keys(
+            timetable
+        ).forEach(
+            className=>{
+
+                for(
+                    let d=0;
+                    d<5;
+                    d++
+                ){
+
+                    for(
+                        let p=0;
+                        p<5;
+                        p++
+                    ){
+
+                        const lesson =
+                            timetable[
+                                className
+                            ][d][p];
+
+                        if(
+                            lesson &&
+                            lesson.teacher===
+                            oldName
+                        ){
+
+                            lesson.teacher=
+                                newName;
+
+                        }
+
+                    }
+
+                }
+
+            }
+        );
+
+    }
+
+
+    /* =================================================
+       REFRESH
+       ================================================= */
+
+    renderTeacherCodes();
+
+    renderAssignments();
+
+
+    if(timetable){
+
+        displayTimetable();
+
+    }
+
+
+    showMessage(
+        `✅ ${oldName} → ${newName} ተቀይሯል። Teacher Code: ${newCode}`,
+        "success"
+    );
+
+}
+
+
+/* =========================================================
+   INITIALIZE
+   ========================================================= */
 
 function initialize(){
 
-    classes = document
-        .getElementById("classNames")
-        .value
-        .split(",")
-        .map(x=>x.trim())
-        .filter(Boolean);
+    updateClasses();
 
-    updateClassSelect();
+    renderTeacherCodes();
 
     loadDefaultData();
 
 }
 
 
+/* =========================================================
+   UPDATE CLASSES
+   ========================================================= */
 
-// =====================================================
-// CLASS SELECT
-// =====================================================
+function updateClasses(){
 
-function updateClassSelect(){
+    const input =
+        document.getElementById(
+            "classNames"
+        );
+
+    classes =
+        input.value
+        .split(",")
+        .map(
+            x=>x.trim()
+        )
+        .filter(Boolean);
+
 
     const select =
-        document.getElementById("classSelect");
+        document.getElementById(
+            "classSelect"
+        );
+
+    const oldValue =
+        select.value;
 
     select.innerHTML="";
 
-    classes.forEach(c=>{
 
-        const option =
-            document.createElement("option");
+    classes.forEach(
+        cls=>{
 
-        option.value=c;
+            const option =
+                document.createElement(
+                    "option"
+                );
 
-        option.textContent=c;
+            option.value=cls;
 
-        select.appendChild(option);
+            option.textContent=cls;
 
-    });
+            select.appendChild(
+                option
+            );
+
+        }
+    );
+
+
+    if(
+        classes.includes(oldValue)
+    ){
+
+        select.value=
+            oldValue;
+
+    }
 
 }
 
 
+/* =========================================================
+   PERIOD NAME
+   ========================================================= */
 
-// =====================================================
-// ADD ASSIGNMENT
-// =====================================================
+function periodName(p){
 
-function addAssignment(){
+    return(
+        p+1
+    )+"ኛ";
+
+}
+
+
+/* =========================================================
+   DEFAULT DATA
+   ========================================================= */
+
+function loadDefaultData(){
+
+    updateClasses();
+
+    assignments=[];
+
+
+    const scienceClasses=[
+        "12A",
+        "12B"
+    ];
+
+
+    scienceClasses.forEach(
+        cls=>{
+
+            assignments.push({
+
+                subject:
+                    "Mathematics",
+
+                teacher:
+                    "Mohammed Frew",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "English",
+
+                teacher:
+                    cls==="12A"
+                    ?
+                    "Tekle"
+                    :
+                    "Mohammed Yesuf",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Amharic",
+
+                teacher:
+                    "Tirunesh",
+
+                className:
+                    cls,
+
+                periods:
+                    2
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "IT",
+
+                teacher:
+                    "Seid Yesuf",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Physics",
+
+                teacher:
+                    "Alemesged",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Chemistry",
+
+                teacher:
+                    "Chane",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Biology",
+
+                teacher:
+                    "Ahmed",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Agriculture",
+
+                teacher:
+                    "Yimam",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+        }
+    );
+
+
+    const socialClasses=[
+        "12C",
+        "12D"
+    ];
+
+
+    socialClasses.forEach(
+        cls=>{
+
+            assignments.push({
+
+                subject:
+                    "Mathematics",
+
+                teacher:
+                    "Mohammed Seid",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "English",
+
+                teacher:
+                    "Mohammed Yesuf",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Amharic",
+
+                teacher:
+                    "Tirunesh",
+
+                className:
+                    cls,
+
+                periods:
+                    2
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "IT",
+
+                teacher:
+                    "Seid Yesuf",
+
+                className:
+                    cls,
+
+                periods:
+                    3
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Geography",
+
+                teacher:
+                    "Alemu",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "History",
+
+                teacher:
+                    "Abubeker",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+
+            assignments.push({
+
+                subject:
+                    "Economics",
+
+                teacher:
+                    "Salim",
+
+                className:
+                    cls,
+
+                periods:
+                    4
+
+            });
+
+        }
+    );
+
+
+    assignments.forEach(
+        a=>
+            getTeacherCode(
+                a.teacher
+            )
+    );
+
+
+    renderAssignments();
+
+    renderTeacherCodes();
+
+}
+
+
+/* =========================================================
+   RENDER ASSIGNMENTS
+   ========================================================= */
+
+function renderAssignments(){
+
+    const body =
+        document.getElementById(
+            "assignmentBody"
+        );
+
+    body.innerHTML="";
+
+
+    assignments.forEach(
+        (a,index)=>{
+
+            const tr =
+                document.createElement(
+                    "tr"
+                );
+
+            tr.innerHTML=`
+
+                <td>
+                    ${index+1}
+                </td>
+
+                <td>
+                    ${escapeHtml(a.subject)}
+                </td>
+
+                <td>
+                    ${escapeHtml(a.teacher)}
+                </td>
+
+                <td>
+                    ${escapeHtml(a.className)}
+                </td>
+
+                <td>
+                    ${a.periods}
+                </td>
+
+                <td>
+
+                    <button
+                        type="button"
+                        class="btn-primary"
+                        onclick="editAssignment(${index})"
+                    >
+                        ✏️ Edit
+                    </button>
+
+                    <button
+                        type="button"
+                        class="btn-danger"
+                        onclick="deleteAssignment(${index})"
+                    >
+                        🗑️ Delete
+                    </button>
+
+                </td>
+
+            `;
+
+            body.appendChild(tr);
+
+        }
+    );
+
+}
+
+
+/* =========================================================
+   SAVE ASSIGNMENT
+   ========================================================= */
+
+function saveAssignment(){
 
     const subject =
-        document.getElementById("subject")
-        .value.trim();
+        document.getElementById(
+            "subject"
+        ).value.trim();
+
 
     const teacher =
-        document.getElementById("teacher")
-        .value.trim();
+        document.getElementById(
+            "teacher"
+        ).value.trim();
+
 
     const className =
-        document.getElementById("classSelect")
-        .value;
+        document.getElementById(
+            "classSelect"
+        ).value;
+
 
     const periods =
         Number(
-            document.getElementById("periods")
-            .value
+            document.getElementById(
+                "periods"
+            ).value
         );
 
 
-    if(!subject || !teacher || !className || !periods){
+    if(
+        !subject ||
+        !teacher
+    ){
 
         showMessage(
-            "እባክህ ሁሉንም መረጃ ሙላ።",
+            "❌ Subject እና Teacher ያስገቡ።",
             "error"
         );
 
         return;
+
     }
 
 
-    assignments.push({
+    if(!className){
+
+        showMessage(
+            "❌ Class ይምረጡ።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        !Number.isInteger(periods) ||
+        periods<1 ||
+        periods>5
+    ){
+
+        showMessage(
+            "❌ Periods 1–5 መሆን አለበት።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const data={
 
         subject,
         teacher,
         className,
         periods
 
-    });
-
-
-    document.getElementById("subject").value="";
-    document.getElementById("teacher").value="";
-    document.getElementById("periods").value=4;
-
-
-    displayAssignments();
-
-}
-
-
-
-// =====================================================
-// DISPLAY ASSIGNMENTS
-// =====================================================
-
-function displayAssignments(){
-
-    const box =
-        document.getElementById("assignmentList");
-
-
-    if(assignments.length===0){
-
-        box.innerHTML=
-            "<p>ምንም assignment የለም።</p>";
-
-        return;
-    }
-
-
-    let html=`
-
-    <table class="assignment-table">
-
-    <tr>
-
-        <th>Subject</th>
-
-        <th>Teacher</th>
-
-        <th>Class / Section</th>
-
-        <th>Periods</th>
-
-        <th>Action</th>
-
-    </tr>
-
-    `;
-
-
-    assignments.forEach((a,index)=>{
-
-        html+=`
-
-        <tr id="row-${index}">
-
-        <td>${a.subject}</td>
-
-        <td>${a.teacher}</td>
-
-        <td>${a.className}</td>
-
-        <td>${a.periods}</td>
-
-        <td>
-
-        <button
-            class="edit-btn"
-            onclick="editAssignment(${index})"
-        >
-            ✏️ Edit
-        </button>
-
-        <button
-            class="btn-danger"
-            onclick="deleteAssignment(${index})"
-        >
-            🗑️ Delete
-        </button>
-
-        </td>
-
-        </tr>
-
-        `;
-
-    });
-
-
-    html+=`</table>`;
-
-
-    box.innerHTML=html;
-
-}
-
-
-
-// =====================================================
-// EDIT ASSIGNMENT
-// =====================================================
-
-function editAssignment(index){
-
-    const a = assignments[index];
-
-    const row =
-        document.getElementById("row-"+index);
-
-    row.innerHTML = `
-
-        <td>
-
-            <input
-                class="edit-input"
-                id="edit-subject-${index}"
-                value="${escapeHtml(a.subject)}"
-            >
-
-        </td>
-
-
-        <td>
-
-            <input
-                class="edit-input"
-                id="edit-teacher-${index}"
-                value="${escapeHtml(a.teacher)}"
-            >
-
-        </td>
-
-
-        <td>
-
-            <select
-                class="edit-input"
-                id="edit-class-${index}"
-            >
-
-                ${classes.map(c => `
-
-                    <option
-                        value="${escapeHtml(c)}"
-                        ${c === a.className ? "selected" : ""}
-                    >
-                        ${escapeHtml(c)}
-                    </option>
-
-                `).join("")}
-
-            </select>
-
-        </td>
-
-
-        <td>
-
-            <input
-                class="edit-input"
-                type="number"
-                min="1"
-                max="30"
-                id="edit-periods-${index}"
-                value="${a.periods}"
-            >
-
-        </td>
-
-
-        <td>
-
-            <button
-                class="save-btn"
-                onclick="saveAssignment(${index})"
-            >
-                💾 Save
-            </button>
-
-            <button
-                class="cancel-btn"
-                onclick="displayAssignments()"
-            >
-                ❌ Cancel
-            </button>
-
-        </td>
-
-    `;
-
-}
-
-
-
-// =====================================================
-// SAVE EDIT
-// =====================================================
-
-function saveAssignment(index){
-
-    const subject =
-        document
-        .getElementById("edit-subject-"+index)
-        .value
-        .trim();
-
-    const teacher =
-        document
-        .getElementById("edit-teacher-"+index)
-        .value
-        .trim();
-
-    const className =
-        document
-        .getElementById("edit-class-"+index)
-        .value;
-
-    const periods =
-        Number(
-            document
-            .getElementById("edit-periods-"+index)
-            .value
-        );
-
-
-    if(
-        !subject ||
-        !teacher ||
-        !className ||
-        periods < 1
-    ){
-
-        showMessage(
-            "እባክህ መረጃውን በትክክል ሙላ።",
-            "error"
-        );
-
-        return;
-    }
-
-
-    assignments[index] = {
-
-        subject:subject,
-
-        teacher:teacher,
-
-        className:className,
-
-        periods:periods
-
     };
 
 
-    timetable={};
+    getTeacherCode(
+        teacher
+    );
 
-    displayAssignments();
 
-    document.getElementById("result").innerHTML =
-        "<p>Timetable እንደገና Generate ማድረግ ያስፈልጋል።</p>";
+    if(
+        editingIndex>=0
+    ){
+
+        assignments[
+            editingIndex
+        ]=data;
+
+        editingIndex=-1;
+
+        document.getElementById(
+            "saveBtn"
+        ).textContent=
+            "➕ Add Subject";
+
+    }
+    else{
+
+        assignments.push(
+            data
+        );
+
+    }
+
+
+    renderAssignments();
+
+    renderTeacherCodes();
+
+    resetForm();
+
 
     showMessage(
-        "✅ Teacher / Class / Section መረጃው ተስተካክሏል። አሁን Generate Timetable ጫን።",
+        "✅ Assignment saved.",
         "success"
     );
 
 }
 
 
+/* =========================================================
+   EDIT ASSIGNMENT
+   ========================================================= */
 
-// =====================================================
-// DELETE
-// =====================================================
+function editAssignment(index){
+
+    if(
+        index<0 ||
+        index>=assignments.length
+    ){
+
+        return;
+
+    }
+
+
+    const a =
+        assignments[index];
+
+
+    document.getElementById(
+        "subject"
+    ).value =
+        a.subject;
+
+
+    document.getElementById(
+        "teacher"
+    ).value =
+        a.teacher;
+
+
+    const select =
+        document.getElementById(
+            "classSelect"
+        );
+
+
+    if(
+        !Array.from(
+            select.options
+        ).some(
+            option=>
+                option.value===
+                a.className
+        )
+    ){
+
+        const option =
+            document.createElement(
+                "option"
+            );
+
+        option.value=
+            a.className;
+
+        option.textContent=
+            a.className;
+
+        select.appendChild(
+            option
+        );
+
+    }
+
+
+    select.value=
+        a.className;
+
+
+    document.getElementById(
+        "periods"
+    ).value =
+        a.periods;
+
+
+    editingIndex=
+        index;
+
+
+    document.getElementById(
+        "saveBtn"
+    ).textContent=
+        "💾 Update Subject";
+
+
+    document.getElementById(
+        "subject"
+    ).focus();
+
+}
+
+
+/* =========================================================
+   DELETE ASSIGNMENT
+   ========================================================= */
 
 function deleteAssignment(index){
 
-    if(!confirm("ይህን Assignment ማጥፋት ትፈልጋለህ?")){
+    if(
+        index<0 ||
+        index>=assignments.length
+    ){
+
         return;
+
     }
 
-    assignments.splice(index,1);
 
-    timetable={};
+    if(
+        !confirm(
+            "ይህን assignment ማጥፋት ትፈልጋለህ?"
+        )
+    ){
 
-    displayAssignments();
+        return;
 
-}
+    }
 
 
-
-// =====================================================
-// DEFAULT DATA
-// =====================================================
-
-function loadDefaultData(){
-
-    assignments = [
-
-        // ---------------- MATHEMATICS ----------------
-
-        {
-            subject:"Mathematics",
-            teacher:"Mohammed frew",
-            className:"12A",
-            periods:4
-        },
-
-        {
-            subject:"Mathematics",
-            teacher:"Mohammed frew",
-            className:"12B",
-            periods:4
-        },
-
-        {
-            subject:"Mathematics",
-            teacher:"Mohammed Seid",
-            className:"12C",
-            periods:4
-        },
-
-        {
-            subject:"Mathematics",
-            teacher:"Mohammed Seid",
-            className:"12D",
-            periods:4
-        },
-
-
-        // ---------------- ENGLISH ----------------
-
-        {
-            subject:"English",
-            teacher:"Tekle",
-            className:"12A",
-            periods:4
-        },
-
-        {
-            subject:"English",
-            teacher:"Tekle",
-            className:"12D",
-            periods:4
-        },
-
-        {
-            subject:"English",
-            teacher:"mohammed yesuf",
-            className:"12B",
-            periods:4
-        },
-
-        {
-            subject:"English",
-            teacher:"Mohammed Yesuf",
-            className:"12C",
-            periods:4
-        },
-
-
-        // ---------------- GOODNESS ----------------
-
-        {
-            subject:"Amharic",
-            teacher:"Tirunesh",
-            className:"12A",
-            periods:2
-        },
-
-        {
-            subject:"Amharic",
-            teacher:"Tirunesh",
-            className:"12B",
-            periods:2
-        },
-
-        {
-            subject:"Amharic",
-            teacher:"Tirunesh",
-            className:"12C",
-            periods:2
-        },
-
-        {
-            subject:"Amharic",
-            teacher:"Tirunesh",
-            className:"12D",
-            periods:2
-        },
-
-
-        // ---------------- PHYSICS ----------------
-
-        {
-            subject:"Physics",
-            teacher:"Alemesged",
-            className:"12A",
-            periods:3
-        },
-
-        {
-            subject:"Physics",
-            teacher:"Alemesged",
-            className:"12B",
-            periods:3
-        },
-
-
-        // ---------------- CHEMISTRY ----------------
-
-        {
-            subject:"Chemistry",
-            teacher:"Chane",
-            className:"12A",
-            periods:3
-        },
-
-        {
-            subject:"Chemistry",
-            teacher:"Chane",
-            className:"12B",
-            periods:3
-        },
-
-
-        // ---------------- BIOLOGY ----------------
-
-        {
-            subject:"Biology",
-            teacher:"Ahmed",
-            className:"12A",
-            periods:3
-        },
-
-        {
-            subject:"Biology",
-            teacher:"Ahmed",
-            className:"12B",
-            periods:3
-        },
-
-
-        // ---------------- GEOGRAPHY ----------------
-
-        {
-            subject:"Geography",
-            teacher:"Alemu",
-            className:"12C",
-            periods:4
-        },
-
-        {
-            subject:"Geography",
-            teacher:"Alemu",
-            className:"12D",
-            periods:4
-        },
-
-
-        // ---------------- HISTORY ----------------
-
-        {
-            subject:"History",
-            teacher:"Abubeker",
-            className:"12C",
-            periods:4
-        },
-
-        {
-            subject:"History",
-            teacher:"Abubeker",
-            className:"12D",
-            periods:4
-        },
-
-
-        // ---------------- ECONOMICS ----------------
-
-        {
-            subject:"Economics",
-            teacher:"Salin",
-            className:"12C",
-            periods:4
-        },
-
-        {
-            subject:"Economics",
-            teacher:"Salin",
-            className:"12D",
-            periods:4
-        },
-
-
-        // ---------------- IT ----------------
-
-        {
-            subject:"IT",
-            teacher:"Seid Yesuf",
-            className:"12A",
-            periods:3
-        },
-
-        {
-            subject:"IT",
-            teacher:"Seid Yesuf",
-            className:"12B",
-            periods:3
-        },
-
-        {
-            subject:"IT",
-            teacher:"Seid Yesuf",
-            className:"12C",
-            periods:3
-        },
-
-        {
-            subject:"IT",
-            teacher:"Seid Yesuf",
-            className:"12D",
-            periods:3
-        },
-
-
-        // ---------------- AGRICULTURE ----------------
-
-        {
-            subject:"Agriculture",
-            teacher:"Yimam",
-            className:"12A",
-            periods:3
-        },
-
-        {
-            subject:"Agriculture",
-            teacher:"Yimam",
-            className:"12B",
-            periods:3
-        }
-
-    ];
-
-
-    timetable={};
-
-    displayAssignments();
-
-
-    showMessage(
-        "የሰጠኸን መረጃ ተጭኗል። Generate Timetable ጫን።",
-        "info"
+    assignments.splice(
+        index,
+        1
     );
 
+
+    if(
+        editingIndex===index
+    ){
+
+        resetForm();
+
+    }
+    else if(
+        editingIndex>index
+    ){
+
+        editingIndex--;
+
+    }
+
+
+    renderAssignments();
+
 }
 
 
+/* =========================================================
+   RESET
+   ========================================================= */
 
-// =====================================================
-// GENERATE
-// =====================================================
+function resetForm(){
+
+    document.getElementById(
+        "subject"
+    ).value="";
+
+
+    document.getElementById(
+        "teacher"
+    ).value="";
+
+
+    document.getElementById(
+        "periods"
+    ).value=3;
+
+
+    editingIndex=-1;
+
+
+    document.getElementById(
+        "saveBtn"
+    ).textContent=
+        "➕ Add Subject";
+
+}
+
+
+/* =========================================================
+   CLEAR
+   ========================================================= */
+
+function clearAssignments(){
+
+    if(
+        !confirm(
+            "ሁሉንም assignments ማጥፋት ትፈልጋለህ?"
+        )
+    ){
+
+        return;
+
+    }
+
+
+    assignments=[];
+
+    timetable=null;
+
+    resetForm();
+
+    renderAssignments();
+
+
+    document.getElementById(
+        "result"
+    ).innerHTML=`
+
+        <div class="loading">
+
+            Generate Timetable ን ለመጀመር
+            "Generate Timetable" ይጫኑ።
+
+        </div>
+
+    `;
+
+}
+
+
+/* =========================================================
+   GENERATE
+   ========================================================= */
 
 function generateTimetable(){
 
-    classes =
-        document
-        .getElementById("classNames")
-        .value
-        .split(",")
-        .map(x=>x.trim())
-        .filter(Boolean);
-
-
-    updateClassSelect();
+    updateClasses();
 
 
     const dayCount =
         Number(
-            document
-            .getElementById("daysCount")
-            .value
+            document.getElementById(
+                "daysCount"
+            ).value
         );
 
 
     const periodCount =
         Number(
-            document
-            .getElementById("periodCount")
-            .value
+            document.getElementById(
+                "periodCount"
+            ).value
         );
 
 
-    if(assignments.length===0){
+    if(
+        dayCount!==5 ||
+        periodCount!==5
+    ){
 
         showMessage(
-            "Assignment የለም።",
+            "❌ 5 days × 5 periods ብቻ ይፈቀዳል።",
             "error"
         );
 
         return;
-    }
-
-
-    // ===============================================
-    // CHECK CLASS NAMES
-    // ===============================================
-
-    for(const a of assignments){
-
-        if(!classes.includes(a.className)){
-
-            showMessage(
-                `❌ ${a.className} በClasses / Sections ውስጥ የለም።`,
-                "error"
-            );
-
-            return;
-        }
 
     }
 
 
-    // ===============================================
-    // CHECK CAPACITY
-    // ===============================================
+    if(
+        assignments.length===0
+    ){
 
-    for(const cls of classes){
+        showMessage(
+            "❌ መጀመሪያ assignments ያስገቡ።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    for(
+        const cls of classes
+    ){
 
         const total =
             assignments
-            .filter(a=>a.className===cls)
+            .filter(
+                a=>
+                    a.className===cls
+            )
             .reduce(
-                (sum,a)=>sum+a.periods,
+                (sum,a)=>
+                    sum+
+                    Number(a.periods),
                 0
             );
 
 
-        const capacity =
-            dayCount * periodCount;
-
-
-        if(total>capacity){
+        if(total!==25){
 
             showMessage(
-
-                `${cls} ላይ ${total} periods ያስፈልጋል፣
-                ግን ${capacity} slots ብቻ አሉ።`,
-
+                `❌ ${cls} = ${total} periods ነው። 25 periods መሆን አለበት።`,
                 "error"
-
             );
 
             return;
+
         }
 
     }
 
 
-
-    // ===============================================
-    // SOLVER
-    // ===============================================
-
-    const solution =
-        solveTimetable(
-            dayCount,
-            periodCount
-        );
-
-
-    if(!solution){
-
-        showMessage(
-
-            "❌ በተሰጠው መረጃ 100% conflict-free timetable ማግኘት አልተቻለም።",
-
-            "error"
-
-        );
-
-        return;
-    }
-
-
-    timetable=solution;
-
-
-    displayTimetable();
-
-
     showMessage(
+        "⏳ Timetable እየተሰራ ነው...",
+        "info"
+    );
 
-        "✅ Timetable በትክክል ተሰርቷል። Teacher/Class conflict የለውም።",
 
-        "success"
+    setTimeout(
+        ()=>{
 
+            const solved =
+                solveTimetable(
+                    assignments
+                );
+
+
+            if(!solved){
+
+                showMessage(
+                    "❌ ሁሉንም ህጎች የሚያሟላ timetable ማግኘት አልተቻለም።",
+                    "error"
+                );
+
+                return;
+
+            }
+
+
+            timetable =
+                solved;
+
+
+            displayTimetable();
+
+
+            showMessage(
+                "✅ Timetable ተሰርቷል።",
+                "success"
+            );
+
+        },
+        50
     );
 
 }
 
 
+/* =========================================================
+   SOLVER
+   ========================================================= */
 
-// =====================================================
-// SOLVER
-// =====================================================
+function solveTimetable(assignments){
 
-function solveTimetable(dayCount,periodCount){
+    const dayCount=5;
 
-    let board={};
+    const periodCount=5;
 
-    let teacherBusy={};
-
-    let classDaySubject={};
-
-
-    // -----------------------------------------------
-    // CREATE BOARD
-    // -----------------------------------------------
-
-    classes.forEach(cls=>{
-
-        board[cls]=[];
-
-        classDaySubject[cls]=[];
-
-        for(let d=0;d<dayCount;d++){
-
-            board[cls][d]=[];
-
-            classDaySubject[cls][d]=new Set();
-
-            for(let p=0;p<periodCount;p++){
-
-                board[cls][d][p]=null;
-
-            }
-
-        }
-
-    });
+    const table={};
 
 
+    classes.forEach(
+        cls=>{
 
-    // -----------------------------------------------
-    // CREATE TASKS
-    // -----------------------------------------------
-
-    let tasks=[];
+            table[cls]=[];
 
 
-    assignments.forEach(a=>{
-
-        tasks.push({
-
-            subject:a.subject,
-
-            teacher:a.teacher,
-
-            className:a.className,
-
-            remaining:a.periods
-
-        });
-
-    });
-
-
-
-    // -----------------------------------------------
-    // BACKTRACK
-    // -----------------------------------------------
-
-    let nodes=0;
-
-    const MAX_NODES=500000;
-
-
-    function recursive(){
-
-        nodes++;
-
-
-        if(nodes>MAX_NODES){
-
-            return false;
-        }
-
-
-        // Find task with smallest available slots
-
-        let selected=null;
-
-        let selectedSlots=null;
-
-
-        for(const task of tasks){
-
-            if(task.remaining<=0)
-                continue;
-
-
-            const slots =
-                getAvailableSlots(task);
-
-
-            if(
-                selected===null ||
-                slots.length < selectedSlots.length
+            for(
+                let d=0;
+                d<dayCount;
+                d++
             ){
 
-                selected=task;
-
-                selectedSlots=slots;
+                table[cls][d]=[];
 
 
-                if(slots.length===0){
+                for(
+                    let p=0;
+                    p<periodCount;
+                    p++
+                ){
 
-                    return false;
+                    table[
+                        cls
+                    ][d][p]=null;
+
                 }
 
             }
 
         }
+    );
 
 
-        // Finished
+    const groups=[];
 
-        if(selected===null){
 
-            return true;
+    assignments.forEach(
+        (a,index)=>{
+
+            groups.push({
+
+                id:index,
+
+                subject:
+                    a.subject,
+
+                teacher:
+                    a.teacher,
+
+                className:
+                    a.className,
+
+                total:
+                    Number(a.periods),
+
+                placed:0,
+
+                usedDays:
+                    new Set()
+
+            });
+
+        }
+    );
+
+
+    const teacherBusy={};
+
+    const teacherDays={};
+
+    const teacherLoadByDay={};
+
+
+    assignments.forEach(
+        a=>{
+
+            if(
+                !teacherBusy[a.teacher]
+            ){
+
+                teacherBusy[
+                    a.teacher
+                ]={};
+
+            }
+
+
+            if(
+                !teacherDays[a.teacher]
+            ){
+
+                teacherDays[
+                    a.teacher
+                ]=new Set();
+
+            }
+
+
+            if(
+                !teacherLoadByDay[
+                    a.teacher
+                ]
+            ){
+
+                teacherLoadByDay[
+                    a.teacher
+                ]={};
+
+            }
+
+        }
+    );
+
+
+    function candidateSlots(group){
+
+        const result=[];
+
+        const teacher=
+            group.teacher;
+
+
+        for(
+            let d=0;
+            d<dayCount;
+            d++
+        ){
+
+            if(
+                group.usedDays.has(d)
+            ){
+
+                continue;
+
+            }
+
+
+            /*
+             * TEACHER MAXIMUM 4 WORKING DAYS
+             */
+
+            if(
+                teacherDays[
+                    teacher
+                ].size>=4 &&
+                !teacherDays[
+                    teacher
+                ].has(d)
+            ){
+
+                continue;
+
+            }
+
+
+            for(
+                let p=0;
+                p<periodCount;
+                p++
+            ){
+
+                if(
+                    table[
+                        group.className
+                    ][d][p]!==null
+                ){
+
+                    continue;
+
+                }
+
+
+                if(
+                    teacherBusy[
+                        teacher
+                    ][d+"-"+p]
+                ){
+
+                    continue;
+
+                }
+
+
+                result.push({
+                    d,
+                    p
+                });
+
+            }
+
         }
 
 
+        return result;
 
-        // Score candidates
+    }
 
-        selectedSlots.sort(
-            (a,b)=>scoreSlot(selected,b)
-                  -scoreSlot(selected,a)
+
+    function chooseGroup(){
+
+        let best=null;
+
+        let bestCandidates=null;
+
+
+        for(
+            const group of groups
+        ){
+
+            if(
+                group.placed>=group.total
+            ){
+
+                continue;
+
+            }
+
+
+            const candidates =
+                candidateSlots(
+                    group
+                );
+
+
+            if(
+                candidates.length===0
+            ){
+
+                return{
+
+                    group,
+
+                    candidates:[]
+
+                };
+
+            }
+
+
+            if(
+                best===null ||
+                candidates.length<
+                bestCandidates.length
+            ){
+
+                best=
+                    group;
+
+                bestCandidates=
+                    candidates;
+
+            }
+
+        }
+
+
+        return{
+
+            group:best,
+
+            candidates:
+                bestCandidates
+
+        };
+
+    }
+
+
+    function place(
+        group,
+        slot
+    ){
+
+        const d=slot.d;
+
+        const p=slot.p;
+
+        const teacher=
+            group.teacher;
+
+
+        table[
+            group.className
+        ][d][p]={
+
+            subject:
+                group.subject,
+
+            teacher:
+                group.teacher
+
+        };
+
+
+        teacherBusy[
+            teacher
+        ][d+"-"+p]=true;
+
+
+        if(
+            !teacherLoadByDay[
+                teacher
+            ][d]
+        ){
+
+            teacherLoadByDay[
+                teacher
+            ][d]=0;
+
+        }
+
+
+        teacherLoadByDay[
+            teacher
+        ][d]++;
+
+
+        teacherDays[
+            teacher
+        ].add(d);
+
+
+        group.usedDays.add(d);
+
+        group.placed++;
+
+    }
+
+
+    function remove(
+        group,
+        slot
+    ){
+
+        const d=slot.d;
+
+        const p=slot.p;
+
+        const teacher=
+            group.teacher;
+
+
+        table[
+            group.className
+        ][d][p]=null;
+
+
+        delete teacherBusy[
+            teacher
+        ][d+"-"+p];
+
+
+        teacherLoadByDay[
+            teacher
+        ][d]--;
+
+
+        if(
+            teacherLoadByDay[
+                teacher
+            ][d]<=0
+        ){
+
+            delete teacherLoadByDay[
+                teacher
+            ][d];
+
+        }
+
+
+        let stillThere=false;
+
+
+        for(
+            let pp=0;
+            pp<periodCount;
+            pp++
+        ){
+
+            if(
+                teacherBusy[
+                    teacher
+                ][d+"-"+pp]
+            ){
+
+                stillThere=true;
+
+                break;
+
+            }
+
+        }
+
+
+        if(!stillThere){
+
+            teacherDays[
+                teacher
+            ].delete(d);
+
+        }
+
+
+        group.usedDays.delete(d);
+
+        group.placed--;
+
+    }
+
+
+    let nodes=0;
+
+    const MAX_NODES=3000000;
+
+
+    function search(){
+
+        nodes++;
+
+
+        if(
+            nodes>MAX_NODES
+        ){
+
+            return false;
+
+        }
+
+
+        let complete=true;
+
+
+        for(
+            const g of groups
+        ){
+
+            if(
+                g.placed<g.total
+            ){
+
+                complete=false;
+
+                break;
+
+            }
+
+        }
+
+
+        if(complete){
+
+            return true;
+
+        }
+
+
+        const choice=
+            chooseGroup();
+
+
+        const group=
+            choice.group;
+
+        const candidates=
+            choice.candidates;
+
+
+        if(
+            !group ||
+            candidates.length===0
+        ){
+
+            return false;
+
+        }
+
+
+        candidates.sort(
+            (a,b)=>{
+
+                let scoreA=0;
+
+                let scoreB=0;
+
+
+                const teacher=
+                    group.teacher;
+
+
+                if(
+                    teacherDays[
+                        teacher
+                    ].has(a.d)
+                ){
+
+                    scoreA+=100;
+
+                }
+
+
+                if(
+                    teacherDays[
+                        teacher
+                    ].has(b.d)
+                ){
+
+                    scoreB+=100;
+
+                }
+
+
+                scoreA -=
+                    teacherLoadByDay[
+                        teacher
+                    ][a.d]||0;
+
+
+                scoreB -=
+                    teacherLoadByDay[
+                        teacher
+                    ][b.d]||0;
+
+
+                scoreA-=a.p*.1;
+
+                scoreB-=b.p*.1;
+
+
+                return scoreB-scoreA;
+
+            }
         );
 
 
-        for(const slot of selectedSlots){
+        for(
+            const slot of candidates
+        ){
 
             place(
-                selected,
+                group,
                 slot
             );
 
 
-            selected.remaining--;
+            let possible=true;
 
 
-            if(recursive()){
+            for(
+                const g of groups
+            ){
 
-                return true;
+                if(
+                    g.placed>=g.total
+                ){
+
+                    continue;
+
+                }
+
+
+                const c=
+                    candidateSlots(g);
+
+
+                if(
+                    c.length===0
+                ){
+
+                    possible=false;
+
+                    break;
+
+                }
+
             }
 
 
-            selected.remaining++;
+            if(
+                possible &&
+                search()
+            ){
+
+                return true;
+
+            }
+
 
             remove(
-                selected,
+                group,
                 slot
             );
 
@@ -1495,542 +3013,1710 @@ function solveTimetable(dayCount,periodCount){
     }
 
 
-
-    // -----------------------------------------------
-    // GET AVAILABLE SLOTS
-    // -----------------------------------------------
-
-    function getAvailableSlots(task){
-
-        let slots=[];
+    const success =
+        search();
 
 
-        for(let d=0;d<dayCount;d++){
+    if(!success){
 
-            for(let p=0;p<periodCount;p++){
-
-                if(
-                    canPlace(
-                        task,
-                        d,
-                        p
-                    )
-                ){
-
-                    slots.push({
-                        d,
-                        p
-                    });
-
-                }
-
-            }
-
-        }
-
-
-        return slots;
+        return null;
 
     }
 
 
+    if(
+        !validateTimetable(
+            table,
+            assignments
+        )
+    ){
 
-    // -----------------------------------------------
-    // CAN PLACE
-    // -----------------------------------------------
-
-    function canPlace(task,d,p){
-
-        // CLASS OCCUPIED
-
-        if(
-            board[task.className][d][p]!==null
-        ){
-
-            return false;
-        }
-
-
-        // TEACHER OCCUPIED
-
-        const key=d+"-"+p;
-
-
-        if(
-            teacherBusy[task.teacher] &&
-            teacherBusy[task.teacher][key]
-        ){
-
-            return false;
-        }
-
-
-        // SAME SUBJECT SAME DAY
-
-        if(
-            classDaySubject
-            [task.className]
-            [d]
-            .has(task.subject)
-        ){
-
-            return false;
-        }
-
-
-        return true;
+        return null;
 
     }
 
 
-
-    // -----------------------------------------------
-    // PLACE
-    // -----------------------------------------------
-
-    function place(task,slot){
-
-        const d=slot.d;
-
-        const p=slot.p;
-
-
-        board[task.className][d][p]={
-            subject:task.subject,
-            teacher:task.teacher
-        };
-
-
-        const key=d+"-"+p;
-
-
-        if(!teacherBusy[task.teacher]){
-
-            teacherBusy[task.teacher]={};
-
-        }
-
-
-        teacherBusy[task.teacher][key]=true;
-
-
-        classDaySubject
-        [task.className]
-        [d]
-        .add(task.subject);
-
-    }
-
-
-
-    // -----------------------------------------------
-    // REMOVE
-    // -----------------------------------------------
-
-    function remove(task,slot){
-
-        const d=slot.d;
-
-        const p=slot.p;
-
-
-        board[task.className][d][p]=null;
-
-
-        const key=d+"-"+p;
-
-
-        delete teacherBusy
-        [task.teacher]
-        [key];
-
-
-        classDaySubject
-        [task.className]
-        [d]
-        .delete(task.subject);
-
-    }
-
-
-
-    // -----------------------------------------------
-    // SLOT SCORE
-    // -----------------------------------------------
-
-    function scoreSlot(task,slot){
-
-        let score=0;
-
-        const d=slot.d;
-
-        const p=slot.p;
-
-
-        // Prefer spreading across day
-
-        const sameDayCount =
-            countClassDay(
-                task.className,
-                d
-            );
-
-
-        score -= sameDayCount * 10;
-
-
-        // Avoid consecutive periods
-
-        if(p>0){
-
-            const previous =
-                board
-                [task.className]
-                [d]
-                [p-1];
-
-
-            if(
-                previous &&
-                previous.subject===task.subject
-            ){
-
-                score-=100;
-            }
-
-        }
-
-
-        if(p<periodCount-1){
-
-            const next =
-                board
-                [task.className]
-                [d]
-                [p+1];
-
-
-            if(
-                next &&
-                next.subject===task.subject
-            ){
-
-                score-=100;
-            }
-
-        }
-
-
-        // Earlier periods slightly preferred
-
-        score -= p;
-
-
-        return score;
-
-    }
-
-
-
-    function countClassDay(cls,d){
-
-        let count=0;
-
-        for(
-            let p=0;
-            p<periodCount;
-            p++
-        ){
-
-            if(
-                board[cls][d][p]
-            ){
-
-                count++;
-            }
-
-        }
-
-        return count;
-
-    }
-
-
-
-    if(recursive()){
-
-        return board;
-
-    }
-
-
-    return null;
+    return table;
 
 }
 
 
+/* =========================================================
+   VALIDATE
+   ========================================================= */
 
-// =====================================================
-// DISPLAY TIMETABLE
-// =====================================================
+function validateTimetable(
+    table,
+    data
+){
 
-function displayTimetable(){
+    const teacherSlots={};
 
-    const dayCount =
-        Number(
-            document
-            .getElementById("daysCount")
-            .value
-        );
-
-
-    const periodCount =
-        Number(
-            document
-            .getElementById("periodCount")
-            .value
-        );
+    const teacherDaySets={};
 
 
-    const result =
-        document.getElementById("result");
+    for(
+        const cls of classes
+    ){
+
+        const classData =
+            data.filter(
+                a=>
+                    a.className===cls
+            );
 
 
-    result.innerHTML="";
-
-
-    classes.forEach(cls=>{
-
-        let html=`
-
-        <h2>🏫 ${escapeHtml(cls)}</h2>
-
-        <table>
-
-        <tr>
-
-        <th class="period">
-        ክፍለ-ጊዜ
-        </th>
-
-        `;
+        const subjectDays={};
 
 
         for(
             let d=0;
-            d<dayCount;
+            d<5;
             d++
         ){
 
-            html+=`
+            for(
+                let p=0;
+                p<5;
+                p++
+            ){
 
-            <th>
-            ${days[d]}
-            </th>
+                const lesson =
+                    table[
+                        cls
+                    ][d][p];
 
-            `;
+
+                if(!lesson){
+
+                    continue;
+
+                }
+
+
+                const key =
+                    lesson.teacher+
+                    "|"+
+                    d+
+                    "|"+
+                    p;
+
+
+                if(
+                    teacherSlots[key]
+                ){
+
+                    return false;
+
+                }
+
+
+                teacherSlots[key]=true;
+
+
+                if(
+                    !teacherDaySets[
+                        lesson.teacher
+                    ]
+                ){
+
+                    teacherDaySets[
+                        lesson.teacher
+                    ]=new Set();
+
+                }
+
+
+                teacherDaySets[
+                    lesson.teacher
+                ].add(d);
+
+
+                if(
+                    !subjectDays[
+                        lesson.subject
+                    ]
+                ){
+
+                    subjectDays[
+                        lesson.subject
+                    ]=new Set();
+
+                }
+
+
+                if(
+                    subjectDays[
+                        lesson.subject
+                    ].has(d)
+                ){
+
+                    return false;
+
+                }
+
+
+                subjectDays[
+                    lesson.subject
+                ].add(d);
+
+            }
 
         }
 
 
-        html+=`</tr>`;
-
-
         for(
-            let p=0;
-            p<periodCount;
-            p++
+            const a of classData
         ){
 
-            html+=`<tr>`;
+            const actual =
+                subjectDays[
+                    a.subject
+                ]
+                ?
+                subjectDays[
+                    a.subject
+                ].size
+                :
+                0;
 
+
+            if(
+                actual !==
+                Number(a.periods)
+            ){
+
+                return false;
+
+            }
+
+        }
+
+    }
+
+
+    /*
+     * TEACHER MAXIMUM 4 WORKING DAYS
+     */
+
+    for(
+        const teacher of
+        Object.keys(
+            teacherDaySets
+        )
+    ){
+
+        if(
+            teacherDaySets[
+                teacher
+            ].size>4
+        ){
+
+            return false;
+
+        }
+
+    }
+
+
+    return true;
+
+}
+
+
+/* =========================================================
+   DISPLAY TIMETABLE
+   ========================================================= */
+
+function displayTimetable(){
+
+    const result =
+        document.getElementById(
+            "result"
+        );
+
+
+    let html=`
+
+        <div class="print-one-page">
+
+            <div class="pdf-header">
+
+                <div class="pdf-new">
+                    NEW
+                </div>
+
+                <div class="pdf-date">
+                    Date:
+                    ${getCurrentDate()}
+                </div>
+
+            </div>
+
+            <div class="pdf-title">
+                Grade 12 Tentative Time Table
+            </div>
+
+            <div class="pdf-subtitle">
+                5 Days × 5 Periods
+            </div>
+
+            <div class="timetable-wrapper">
+
+                <table class="timetable">
+
+                    <colgroup>
+
+                        <col
+                            class="day-column"
+                            style="width:8%"
+                        >
+
+                        <col
+                            class="period-column"
+                            style="width:11%"
+                        >
+
+    `;
+
+
+    classes.forEach(
+        ()=>{
 
             html+=`
 
-            <th class="period">
-
-            ${periodName(p)}
-
-            </th>
+                <col
+                    class="class-column"
+                    style="width:20.25%"
+                >
 
             `;
 
+        }
+    );
 
-            for(
-                let d=0;
-                d<dayCount;
-                d++
+
+    html+=`
+
+                    </colgroup>
+
+                    <thead>
+
+                        <tr>
+
+                            <th rowspan="2">
+                                Days
+                            </th>
+
+                            <th rowspan="2">
+                                Periods
+                            </th>
+
+    `;
+
+
+    classes.forEach(
+        cls=>{
+
+            html+=`
+
+                <th>
+                    ${escapeHtml(cls)}
+                </th>
+
+            `;
+
+        }
+    );
+
+
+    html+=`
+
+                        </tr>
+
+                        <tr>
+
+    `;
+
+
+    classes.forEach(
+        ()=>{
+
+            html+=`
+
+                <th>
+                    Subject / Teacher
+                </th>
+
+            `;
+
+        }
+    );
+
+
+    html+=`
+
+                        </tr>
+
+                    </thead>
+
+                    <tbody>
+
+    `;
+
+
+    for(
+        let d=0;
+        d<5;
+        d++
+    ){
+
+        for(
+            let p=0;
+            p<5;
+            p++
+        ){
+
+            html+=`
+                <tr>
+            `;
+
+
+            if(
+                p===0
             ){
 
-                const lesson =
-                    timetable
-                    [cls]
-                    [d]
-                    [p];
+                html+=`
 
-
-                if(lesson){
-
-                    html+=`
-
-                    <td>
-
-                    <div class="subject">
-
-                    ${escapeHtml(lesson.subject)}
-
-                    </div>
-
-                    <div class="teacher">
-
-                    👨‍🏫 ${escapeHtml(lesson.teacher)}
-
-                    </div>
-
+                    <td
+                        rowspan="5"
+                        class="day-cell"
+                    >
+                        ${days[d]}
                     </td>
 
-                    `;
-
-                }
-                else{
-
-                    html+=`
-
-                    <td>
-
-                    <span class="free">
-
-                    Free
-
-                    </span>
-
-                    </td>
-
-                    `;
-
-                }
+                `;
 
             }
 
 
-            html+=`</tr>`;
+            html+=`
+
+                <td class="period-cell">
+                    ${periodName(p)}
+                </td>
+
+            `;
+
+
+            classes.forEach(
+                cls=>{
+
+                    const lesson =
+                        timetable[
+                            cls
+                        ][d][p];
+
+
+                    if(lesson){
+
+                        const code =
+                            getTeacherCode(
+                                lesson.teacher
+                            );
+
+
+                        html+=`
+
+                            <td>
+
+                                <div class="lesson">
+
+                                    <div class="subject">
+                                        ${escapeHtml(
+                                            lesson.subject
+                                        )}
+                                    </div>
+
+                                    <div class="teacher">
+
+                                        <span class="teacher-code">
+                                            ${escapeHtml(
+                                                code
+                                            )}
+                                        </span>
+
+                                    </div>
+
+                                </div>
+
+                            </td>
+
+                        `;
+
+                    }
+                    else{
+
+                        html+=`
+
+                            <td>
+
+                                <span class="free">
+                                    -
+                                </span>
+
+                            </td>
+
+                        `;
+
+                    }
+
+                }
+            );
+
+
+            html+=`
+                </tr>
+            `;
 
         }
 
+    }
 
-        html+=`</table>`;
+
+    html+=`
+
+                    </tbody>
+
+                </table>
+
+            </div>
+
+            <div class="pdf-footer">
+                Grade 12 Automatic Timetable
+            </div>
+
+        </div>
+
+    `;
 
 
-        result.innerHTML+=html;
-
-    });
+    result.innerHTML=
+        html;
 
 }
 
 
+/* =========================================================
+   DATE
+   ========================================================= */
 
-// =====================================================
-// PERIOD NAME
-// =====================================================
+function getCurrentDate(){
 
-function periodName(p){
+    const now =
+        new Date();
 
-    const names=[
 
-        "1ኛ",
-        "2ኛ",
-        "3ኛ",
-        "4ኛ",
-        "5ኛ",
-        "6ኛ",
-        "7ኛ",
-        "8ኛ",
-        "9ኛ",
-        "10ኛ"
+    const day =
+        String(
+            now.getDate()
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const month =
+        String(
+            now.getMonth()+1
+        ).padStart(
+            2,
+            "0"
+        );
+
+
+    const year =
+        now.getFullYear();
+
+
+    return(
+        day+
+        "/"+
+        month+
+        "/"+
+        year+
+        " E.C."
+    );
+
+}
+
+
+/* =========================================================
+   EXCEL
+   ========================================================= */
+
+function exportExcel(){
+
+    if(
+        !timetable ||
+        Object.keys(
+            timetable
+        ).length===0
+    ){
+
+        showMessage(
+            "❌ መጀመሪያ Generate Timetable አድርግ።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    if(
+        typeof XLSX==="undefined"
+    ){
+
+        showMessage(
+            "❌ Excel library አልተጫነም። Internet አብራ።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const workbook =
+        XLSX.utils.book_new();
+
+
+    const data=[];
+
+
+    const header=[
+        "Days",
+        "Periods"
+    ];
+
+
+    classes.forEach(
+        cls=>
+            header.push(cls)
+    );
+
+
+    data.push(header);
+
+
+    for(
+        let d=0;
+        d<5;
+        d++
+    ){
+
+        for(
+            let p=0;
+            p<5;
+            p++
+        ){
+
+            const row=[
+
+                p===0
+                ?
+                days[d]
+                :
+                "",
+
+                periodName(p)
+
+            ];
+
+
+            classes.forEach(
+                cls=>{
+
+                    const lesson =
+                        timetable[
+                            cls
+                        ][d][p];
+
+
+                    if(lesson){
+
+                        const code =
+                            getTeacherCode(
+                                lesson.teacher
+                            );
+
+
+                        row.push(
+                            lesson.subject+
+                            " - "+
+                            code
+                        );
+
+                    }
+                    else{
+
+                        row.push(
+                            "Free"
+                        );
+
+                    }
+
+                }
+            );
+
+
+            data.push(row);
+
+        }
+
+    }
+
+
+    const worksheet =
+        XLSX.utils.aoa_to_sheet(
+            data
+        );
+
+
+    worksheet["!cols"]=[
+
+        {
+            wch:10
+        },
+
+        {
+            wch:8
+        }
 
     ];
 
 
-    return names[p]+" ክፍለ-ጊዜ";
+    classes.forEach(
+        ()=>{
+
+            worksheet[
+                "!cols"
+            ].push({
+                wch:24
+            });
+
+        }
+    );
+
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Grade 12 Timetable"
+    );
+
+
+    const codeData=[
+
+        [
+            "Teacher Name",
+            "Code"
+        ]
+
+    ];
+
+
+    Object.entries(
+        teacherCodes
+    ).forEach(
+        ([name,code])=>{
+
+            codeData.push([
+                name,
+                code
+            ]);
+
+        }
+    );
+
+
+    const codeSheet =
+        XLSX.utils.aoa_to_sheet(
+            codeData
+        );
+
+
+    codeSheet["!cols"]=[
+
+        {
+            wch:30
+        },
+
+        {
+            wch:15
+        }
+
+    ];
+
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        codeSheet,
+        "Teacher Codes"
+    );
+
+
+    try{
+
+        XLSX.writeFile(
+            workbook,
+            "Grade_12_Timetable.xlsx"
+        );
+
+
+        showMessage(
+            "✅ Excel file ተዘጋጅቷል።",
+            "success"
+        );
+
+    }
+    catch(error){
+
+        console.error(error);
+
+
+        showMessage(
+            "❌ Excel file ማውጣት አልተቻለም።",
+            "error"
+        );
+
+    }
 
 }
 
 
+/* =========================================================
+   PDF
+   ========================================================= */
 
-// =====================================================
-// MESSAGE
-// =====================================================
+function exportPDF(){
 
-function showMessage(text,type){
+    if(
+        !timetable ||
+        Object.keys(
+            timetable
+        ).length===0
+    ){
 
-    const box =
-        document.getElementById("message");
+        showMessage(
+            "❌ መጀመሪያ Generate Timetable አድርግ።",
+            "error"
+        );
+
+        return;
+
+    }
 
 
-    box.style.display="block";
+    const result =
+        document.getElementById(
+            "result"
+        );
 
-    box.className=
-        "message "+type;
 
-    box.innerHTML=text;
+    if(
+        !result ||
+        !result.innerHTML.trim()
+    ){
+
+        showMessage(
+            "❌ Timetable አልተገኘም።",
+            "error"
+        );
+
+        return;
+
+    }
+
+
+    const oldHTML =
+        document.body.innerHTML;
+
+
+    const printHTML=`
+
+        <div class="print-one-page">
+
+            <div class="pdf-header">
+
+                <div class="pdf-new">
+                    NEW
+                </div>
+
+                <div class="pdf-date">
+                    Date:
+                    ${getCurrentDate()}
+                </div>
+
+            </div>
+
+            <div class="pdf-title">
+                Grade 12 Tentative Time Table
+                prepared by Mesud
+            </div>
+
+            ${result.innerHTML}
+
+        </div>
+
+        <style>
+
+        *{
+            box-sizing:border-box;
+        }
+
+        @page{
+            size:A4 portrait;
+            margin:8mm 8mm 7mm 8mm;
+        }
+
+        html,
+        body{
+
+            width:100% !important;
+            height:100% !important;
+
+            margin:0 !important;
+            padding:0 !important;
+
+            background:white !important;
+
+            overflow:hidden !important;
+
+            font-family:
+                Arial,
+                "Noto Sans Ethiopic",
+                sans-serif;
+        }
+
+        .print-one-page{
+
+            width:100% !important;
+
+            height:auto !important;
+
+            max-height:100% !important;
+
+            margin:0 !important;
+            padding:0 !important;
+
+            overflow:hidden !important;
+
+            page-break-before:avoid !important;
+            page-break-after:avoid !important;
+            page-break-inside:avoid !important;
+
+            break-before:avoid !important;
+            break-after:avoid !important;
+            break-inside:avoid !important;
+        }
+
+        .pdf-header{
+
+            display:flex !important;
+
+            justify-content:space-between !important;
+
+            align-items:flex-start !important;
+
+            width:100% !important;
+
+            margin:0 0 8px 0 !important;
+
+            padding:0 !important;
+        }
+
+        .pdf-new{
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:18px !important;
+
+            font-weight:bold !important;
+
+            font-style:italic !important;
+
+            text-decoration:underline !important;
+
+            line-height:20px !important;
+        }
+
+        .pdf-date{
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:10px !important;
+
+            font-weight:bold !important;
+
+            line-height:14px !important;
+        }
+
+        .pdf-title{
+
+            display:block !important;
+
+            text-align:center !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:14px !important;
+
+            font-weight:bold !important;
+
+            line-height:18px !important;
+
+            margin:0 0 7px 0 !important;
+
+            padding:0 !important;
+        }
+
+        .timetable-wrapper{
+
+            width:100% !important;
+
+            overflow:visible !important;
+
+            margin:0 !important;
+
+            padding:0 !important;
+        }
+
+        .timetable{
+
+            width:100% !important;
+
+            min-width:0 !important;
+
+            max-width:100% !important;
+
+            table-layout:fixed !important;
+
+            border-collapse:collapse !important;
+
+            border-spacing:0 !important;
+
+            margin:0 auto !important;
+
+            padding:0 !important;
+
+            page-break-inside:avoid !important;
+
+            break-inside:avoid !important;
+        }
+
+        .timetable col.day-column{
+            width:8% !important;
+        }
+
+        .timetable col.period-column{
+            width:11% !important;
+        }
+
+        .timetable col.class-column{
+            width:20.25% !important;
+        }
+
+        .timetable thead tr:first-child{
+            height:18px !important;
+        }
+
+        .timetable thead tr:nth-child(2){
+            height:17px !important;
+        }
+
+        .timetable thead th{
+
+            height:18px !important;
+
+            min-height:18px !important;
+
+            max-height:18px !important;
+
+            padding:1px !important;
+
+            border:0.6px solid #555 !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:8px !important;
+
+            line-height:9px !important;
+
+            font-weight:bold !important;
+
+            background:white !important;
+
+            color:#111 !important;
+
+            vertical-align:middle !important;
+
+            overflow:hidden !important;
+        }
+
+        .timetable thead tr:nth-child(2) th{
+
+            height:17px !important;
+
+            min-height:17px !important;
+
+            max-height:17px !important;
+
+            font-size:7px !important;
+
+            line-height:8px !important;
+        }
+
+        .timetable tbody tr{
+
+            height:16px !important;
+
+            min-height:16px !important;
+
+            max-height:16px !important;
+        }
+
+        .timetable tbody td{
+
+            height:16px !important;
+
+            min-height:16px !important;
+
+            max-height:16px !important;
+
+            padding:0 !important;
+
+            margin:0 !important;
+
+            border:0.6px solid #555 !important;
+
+            text-align:center !important;
+
+            vertical-align:middle !important;
+
+            line-height:1 !important;
+
+            overflow:hidden !important;
+        }
+
+        .day-cell{
+
+            width:8% !important;
+
+            min-width:8% !important;
+
+            max-width:8% !important;
+
+            padding:0 !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:8px !important;
+
+            font-weight:bold !important;
+
+            line-height:1 !important;
+
+            writing-mode:vertical-rl !important;
+
+            transform:rotate(180deg) !important;
+
+            white-space:nowrap !important;
+
+            overflow:hidden !important;
+        }
+
+        .period-cell{
+
+            width:11% !important;
+
+            min-width:11% !important;
+
+            max-width:11% !important;
+
+            padding:0 2px !important;
+
+            background:white !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:7px !important;
+
+            font-weight:bold !important;
+
+            line-height:1 !important;
+
+            white-space:nowrap !important;
+
+            overflow:hidden !important;
+        }
+
+        .lesson{
+
+            display:block !important;
+
+            width:100% !important;
+
+            height:15px !important;
+
+            min-height:15px !important;
+
+            max-height:15px !important;
+
+            padding:0 !important;
+
+            margin:0 !important;
+
+            border-radius:0 !important;
+
+            background:white !important;
+
+            overflow:hidden !important;
+        }
+
+        .subject{
+
+            display:block !important;
+
+            width:100% !important;
+
+            height:8px !important;
+
+            max-height:8px !important;
+
+            margin:0 !important;
+
+            padding:0 !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:7px !important;
+
+            font-weight:bold !important;
+
+            color:#111 !important;
+
+            line-height:8px !important;
+
+            white-space:nowrap !important;
+
+            overflow:hidden !important;
+
+            text-overflow:clip !important;
+        }
+
+        .teacher{
+
+            display:block !important;
+
+            width:100% !important;
+
+            height:6px !important;
+
+            max-height:6px !important;
+
+            margin:0 !important;
+
+            padding:0 !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:5px !important;
+
+            color:#111 !important;
+
+            line-height:6px !important;
+
+            white-space:nowrap !important;
+
+            overflow:hidden !important;
+        }
+
+        .teacher-code{
+
+            font-size:5px !important;
+
+            font-weight:bold !important;
+
+            color:#111 !important;
+        }
+
+        .free{
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:5px !important;
+
+            color:#777 !important;
+
+            line-height:16px !important;
+        }
+
+        .pdf-footer{
+
+            display:block !important;
+
+            text-align:center !important;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif !important;
+
+            font-size:7px !important;
+
+            margin-top:7px !important;
+
+            line-height:9px !important;
+        }
+
+        table,
+        tr,
+        td,
+        th{
+
+            page-break-inside:avoid !important;
+
+            break-inside:avoid !important;
+        }
+
+        </style>
+
+    `;
+
+
+    document.body.innerHTML =
+        printHTML;
+
+
+    setTimeout(
+        ()=>{
+
+            window.print();
+
+
+            setTimeout(
+                ()=>{
+
+                    document.body.innerHTML =
+                        oldHTML;
+
+                    renderTeacherCodes();
+
+                    renderAssignments();
+
+
+                    if(timetable){
+
+                        displayTimetable();
+
+                    }
+
+                },
+                1200
+            );
+
+        },
+        300
+    );
 
 }
 
 
+/* =========================================================
+   PRINT TEACHER CODES
+   ========================================================= */
 
-// =====================================================
-// HTML ESCAPE
-// =====================================================
+function printTeacherCodes(){
+
+    const oldHTML =
+        document.body.innerHTML;
+
+
+    let rows="";
+
+
+    Object.entries(
+        teacherCodes
+    ).forEach(
+        ([name,code],index)=>{
+
+            rows+=`
+
+                <tr>
+
+                    <td>
+                        ${index+1}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(name)}
+                    </td>
+
+                    <td>
+                        ${escapeHtml(code)}
+                    </td>
+
+                </tr>
+
+            `;
+
+        }
+    );
+
+
+    const printHTML=`
+
+        <div class="teacher-code-print">
+
+            <div class="teacher-code-title">
+                Grade 12 Teacher Codes
+            </div>
+
+            <div class="teacher-code-date">
+                Date: ${getCurrentDate()}
+            </div>
+
+            <table>
+
+                <thead>
+
+                    <tr>
+
+                        <th>No</th>
+
+                        <th>Teacher Name</th>
+
+                        <th>Code</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    ${rows}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <style>
+
+        *{
+            box-sizing:border-box;
+        }
+
+        @page{
+
+            size:A4 portrait;
+
+            margin:15mm;
+        }
+
+        html,
+        body{
+
+            margin:0 !important;
+
+            padding:0 !important;
+
+            width:100% !important;
+
+            background:white !important;
+
+            color:#111 !important;
+
+            font-family:
+                Arial,
+                "Noto Sans Ethiopic",
+                sans-serif !important;
+        }
+
+        .teacher-code-print{
+
+            width:100%;
+
+            margin:0 auto;
+
+        }
+
+        .teacher-code-title{
+
+            text-align:center;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif;
+
+            font-size:20px;
+
+            font-weight:bold;
+
+            margin-bottom:8px;
+
+        }
+
+        .teacher-code-date{
+
+            text-align:right;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif;
+
+            font-size:10px;
+
+            font-weight:bold;
+
+            margin-bottom:15px;
+
+        }
+
+        .teacher-code-print table{
+
+            width:100%;
+
+            border-collapse:collapse;
+
+            table-layout:fixed;
+
+        }
+
+        .teacher-code-print th,
+        .teacher-code-print td{
+
+            border:1px solid #555;
+
+            padding:7px;
+
+            text-align:center;
+
+            vertical-align:middle;
+
+            font-family:
+                Georgia,
+                "Times New Roman",
+                serif;
+
+            font-size:12px;
+
+        }
+
+        .teacher-code-print th{
+
+            font-weight:bold;
+
+            background:#f2f2f2;
+
+        }
+
+        .teacher-code-print th:first-child,
+        .teacher-code-print td:first-child{
+
+            width:15%;
+
+        }
+
+        .teacher-code-print th:nth-child(2),
+        .teacher-code-print td:nth-child(2){
+
+            width:60%;
+
+            text-align:left;
+
+            padding-left:12px;
+
+        }
+
+        .teacher-code-print th:nth-child(3),
+        .teacher-code-print td:nth-child(3){
+
+            width:25%;
+
+            font-weight:bold;
+
+        }
+
+        </style>
+
+    `;
+
+
+    document.body.innerHTML =
+        printHTML;
+
+
+    setTimeout(
+        ()=>{
+
+            window.print();
+
+
+            setTimeout(
+                ()=>{
+
+                    document.body.innerHTML =
+                        oldHTML;
+
+                    renderTeacherCodes();
+
+                    renderAssignments();
+
+
+                    if(timetable){
+
+                        displayTimetable();
+
+                    }
+
+                },
+                1200
+            );
+
+        },
+        300
+    );
+
+}
+
+
+/* =========================================================
+   ESCAPE HTML
+   ========================================================= */
 
 function escapeHtml(value){
 
     return String(value)
-        .replace(/&/g,"&amp;")
-        .replace(/</g,"&lt;")
-        .replace(/>/g,"&gt;")
-        .replace(/"/g,"&quot;")
-        .replace(/'/g,"&#039;");
+
+        .replace(
+            /&/g,
+            "&amp;"
+        )
+
+        .replace(
+            /</g,
+            "&lt;"
+        )
+
+        .replace(
+            />/g,
+            "&gt;"
+        )
+
+        .replace(
+            /"/g,
+            "&quot;"
+        )
+
+        .replace(
+            /'/g,
+            "&#039;"
+        );
 
 }
 
 
+/* =========================================================
+   MESSAGE
+   ========================================================= */
 
-// =====================================================
-// CLEAR
-// =====================================================
+function showMessage(
+    text,
+    type
+){
 
-function clearAssignments(){
+    const box =
+        document.getElementById(
+            "message"
+        );
+
+
+    box.className =
+        "message "+type;
+
+
+    box.textContent =
+        text;
+
+
+    box.style.display =
+        "block";
+
+
+    window.scrollTo({
+
+        top:0,
+
+        behavior:"smooth"
+
+    });
+
 
     if(
-        !confirm(
-            "ሁሉንም assignments ማጥፋት ትፈልጋለህ?"
-        )
+        type==="success"
     ){
 
-        return;
+        setTimeout(
+            ()=>{
+
+                box.style.display =
+                    "none";
+
+            },
+            5000
+        );
+
     }
-
-
-    assignments=[];
-
-    timetable={};
-
-
-    displayAssignments();
-
-
-    document.getElementById(
-        "result"
-    ).innerHTML=
-        "<p>Timetable not generated.</p>";
 
 }
 
 
-
-// =====================================================
-// START
-// =====================================================
+/* =========================================================
+   START
+   ========================================================= */
 
 initialize();
 
